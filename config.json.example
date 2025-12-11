@@ -1,0 +1,24 @@
+{
+  "server": {
+    "listen_addr": "0.0.0.0:8000",
+    "token": "your-token-here"
+  },
+  "client": {
+    "server_addr": "your-server-ip:8000",
+    "token": "your-token-here",
+    "proxies": [
+      {
+        "name": "web",
+        "type": "tcp",
+        "local_addr": "127.0.0.1:8080",
+        "remote_port": 8080
+      },
+      {
+        "name": "ssh",
+        "type": "tcp",
+        "local_addr": "127.0.0.1:22",
+        "remote_port": 2222
+      }
+    ]
+  }
+}

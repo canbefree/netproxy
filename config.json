@@ -1,0 +1,18 @@
+{
+  "server": {
+    "listen_addr": "0.0.0.0:8000",
+    "token": "test-token"
+  },
+  "client": {
+    "server_addr": "localhost:8000",
+    "token": "test-token",
+    "proxies": [
+      {
+        "name": "test",
+        "type": "tcp",
+        "local_addr": "127.0.0.1:8080",
+        "remote_port": 8080
+      }
+    ]
+  }
+}
