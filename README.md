@@ -56,30 +56,49 @@ go build -o netproxy
 ### 3. 启动服务端
 
 ```bash
+# 使用新的命令格式
+./netproxy server -c config.json
+
+# 或者使用简写
 ./netproxy -s -c config.json
 ```
 
 ### 4. 启动客户端
 
 ```bash
-./netproxy -c -c config.json
+# 使用新的命令格式
+./netproxy client -c config.json
+
+# 或者使用简写（注意是大写C）
+./netproxy -C -c config.json
 ```
 
 ### 5. 访问服务
 
-现在你可以通过服务端的公网IP和配置的远程端口访问内网服务了：
+现在你可以通过服务端的公网IP和配置的远程端口访问内网服务了。
 
-- Web服务：`http://your-server-ip:8080`
-- SSH服务：`ssh -p 2222 user@your-server-ip`
+例如，如果你的服务端是`canbefree.xyz`，配置了将本地8080端口映射到远程8080端口：
+- Web服务：`http://canbefree.xyz:8080`
 
-## 命令行参数
+如果配置了将本地SSH服务（22端口）映射到远程2222端口：
+- SSH服务：`ssh -p 2222 user@canbefree.xyz`
+
+##### 命令行参数
 
 ```bash
-Usage of netproxy:
-  -c string
-        配置文件路径 (default "config.json")
-  -s    启动服务端
-  -c    启动客户端
+# 使用新的命令格式
+./netproxy [command] [flags]
+
+# 可用命令
+  client    启动客户端
+  server    启动服务端
+
+# 全局参数
+  -c, --config string   配置文件路径 (default "config.json")
+
+# 为了兼容旧版本，也支持以下简写参数
+  -s    启动服务端（等同于 server 命令）
+  -C    启动客户端（等同于 client 命令，注意是大写C）
 ```
 
 ## 配置说明

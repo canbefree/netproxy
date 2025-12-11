@@ -176,6 +176,7 @@ func (s *Server) handleNewProxy(clientConn *ClientConn, data []byte) {
 
 	// 启动代理监听
 	err = proxy.start()
+	common.Log("Proxy %s started on local addr %s", newProxyMsg.Name, newProxyMsg.LocalAddr)
 	if err != nil {
 		common.Log("Error starting proxy %s: %v", newProxyMsg.Name, err)
 		return
@@ -275,6 +276,8 @@ func (p *Proxy) start() error {
 
 	// 监听远程端口
 	addr := net.JoinHostPort("0.0.0.0", strconv.Itoa(p.RemotePort))
+	common.Log("Proxy %s listening on %s", p.Name, addr)
+
 	var err error
 	p.listener, err = net.Listen("tcp", addr)
 	if err != nil {

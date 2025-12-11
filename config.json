@@ -4,7 +4,7 @@
     "token": "test-token"
   },
   "client": {
-    "server_addr": "localhost:8000",
+    "server_addr": "canbefree.xyz:8000",
     "token": "test-token",
     "proxies": [
       {
