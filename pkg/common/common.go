@@ -98,7 +98,80 @@ type NewProxyMsg struct {
 	Name       string
 	Type       string
 	LocalAddr  string
-	RemotePort int
+	RemotePort int32
+}
+
+// 发送新代理消息（客户端调用）
+func SendNewProxyMsg(conn net.Conn, msg NewProxyMsg) error {
+	// 构建消息：依次写入各字段，字符串采用"长度+内容"的方式
+	var buf bytes.Buffer
+
+	// 写入Name字段
+	nameLen := uint32(len(msg.Name))
+	binary.Write(&buf, binary.BigEndian, nameLen)
+	buf.Write([]byte(msg.Name))
+
+	// 写入Type字段
+	typeLen := uint32(len(msg.Type))
+	binary.Write(&buf, binary.BigEndian, typeLen)
+	buf.Write([]byte(msg.Type))
+
+	// 写入LocalAddr字段
+	localAddrLen := uint32(len(msg.LocalAddr))
+	binary.Write(&buf, binary.BigEndian, localAddrLen)
+	buf.Write([]byte(msg.LocalAddr))
+
+	// 写入RemotePort字段（使用固定大小的int32类型）
+	binary.Write(&buf, binary.BigEndian, msg.RemotePort)
+
+	// 发送消息
+	return SendMsg(conn, MsgTypeNewProxy, 0, buf.Bytes())
+}
+
+// 接收新代理消息（服务端调用）
+func RecvNewProxyMsg(data []byte) (NewProxyMsg, error) {
+	var msg NewProxyMsg
+	reader := bytes.NewReader(data)
+
+	// 读取Name字段
+	var nameLen uint32
+	if err := binary.Read(reader, binary.BigEndian, &nameLen); err != nil {
+		return msg, err
+	}
+	nameBytes := make([]byte, nameLen)
+	if _, err := reader.Read(nameBytes); err != nil {
+		return msg, err
+	}
+	msg.Name = string(nameBytes)
+
+	// 读取Type字段
+	var typeLen uint32
+	if err := binary.Read(reader, binary.BigEndian, &typeLen); err != nil {
+		return msg, err
+	}
+	typeBytes := make([]byte, typeLen)
+	if _, err := reader.Read(typeBytes); err != nil {
+		return msg, err
+	}
+	msg.Type = string(typeBytes)
+
+	// 读取LocalAddr字段
+	var localAddrLen uint32
+	if err := binary.Read(reader, binary.BigEndian, &localAddrLen); err != nil {
+		return msg, err
+	}
+	localAddrBytes := make([]byte, localAddrLen)
+	if _, err := reader.Read(localAddrBytes); err != nil {
+		return msg, err
+	}
+	msg.LocalAddr = string(localAddrBytes)
+
+	// 读取RemotePort字段
+	if err := binary.Read(reader, binary.BigEndian, &msg.RemotePort); err != nil {
+		return msg, err
+	}
+
+	return msg, nil
 }
 
 // 发送消息

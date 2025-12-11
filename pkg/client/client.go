@@ -234,15 +234,11 @@ func (p *LocalProxy) register() error {
 		Name:       p.Name,
 		Type:       p.Type,
 		LocalAddr:  p.LocalAddr,
-		RemotePort: p.RemotePort,
+		RemotePort: int32(p.RemotePort),
 	}
 
-	// 序列化消息
-	buf := new(bytes.Buffer)
-	binary.Write(buf, binary.BigEndian, &newProxyMsg)
-
-	// 发送消息到服务端
-	return common.SendMsg(p.client.conn, common.MsgTypeNewProxy, 0, buf.Bytes())
+	// 发送消息到服务端（使用专门的序列化函数）
+	return common.SendNewProxyMsg(p.client.conn, newProxyMsg)
 }
 
 // handleNewConn 处理新连接请求

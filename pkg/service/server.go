@@ -155,8 +155,7 @@ func (s *Server) handleMsg(clientConn *ClientConn, header common.MsgHeader, data
 // handleNewProxy 处理新代理请求
 func (s *Server) handleNewProxy(clientConn *ClientConn, data []byte) {
 	// 解析新代理消息
-	var newProxyMsg common.NewProxyMsg
-	err := binary.Read(bytes.NewReader(data), binary.BigEndian, &newProxyMsg)
+	newProxyMsg, err := common.RecvNewProxyMsg(data)
 	if err != nil {
 		common.Log("Error parsing new proxy message: %v", err)
 		return
@@ -168,7 +167,7 @@ func (s *Server) handleNewProxy(clientConn *ClientConn, data []byte) {
 		Name:       newProxyMsg.Name,
 		Type:       newProxyMsg.Type,
 		LocalAddr:  newProxyMsg.LocalAddr,
-		RemotePort: newProxyMsg.RemotePort,
+		RemotePort: int(newProxyMsg.RemotePort),
 		ClientConn: clientConn,
 		conns:      make(map[uint32]net.Conn),
 	}
