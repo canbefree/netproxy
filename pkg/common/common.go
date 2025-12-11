@@ -31,6 +31,68 @@ type AuthMsg struct {
 	Token string
 }
 
+// 发送认证信息（客户端调用）
+func SendAuth(conn net.Conn, token string) error {
+	// 构建认证消息：先写入令牌长度，再写入令牌内容
+	var buf bytes.Buffer
+
+	// 写入令牌长度
+	tokenLen := uint32(len(token))
+	err := binary.Write(&buf, binary.BigEndian, tokenLen)
+	if err != nil {
+		return err
+	}
+
+	// 写入令牌内容
+	_, err = buf.Write([]byte(token))
+	if err != nil {
+		return err
+	}
+
+	// 发送认证消息
+	return SendMsg(conn, MsgTypeAuth, 0, buf.Bytes())
+}
+
+// 接收并验证认证信息（服务端调用）
+func RecvAuth(conn net.Conn, expectedToken string) error {
+	// 接收认证消息
+	header, data, err := RecvMsg(conn)
+	if err != nil {
+		return err
+	}
+
+	if header.Type != MsgTypeAuth {
+		return errors.New("expected auth message")
+	}
+
+	// 解析令牌：先读取令牌长度，再读取令牌内容
+	reader := bytes.NewReader(data)
+
+	// 读取令牌长度
+	var tokenLen uint32
+	err = binary.Read(reader, binary.BigEndian, &tokenLen)
+	if err != nil {
+		return err
+	}
+
+	// 读取令牌内容
+	tokenBytes := make([]byte, tokenLen)
+	_, err = reader.Read(tokenBytes)
+	if err != nil {
+		return err
+	}
+
+	token := string(tokenBytes)
+
+	// 验证令牌
+	if token != expectedToken {
+		return errors.New("invalid token")
+	}
+
+	// 发送认证成功响应
+	return SendMsg(conn, MsgTypeAuth, 0, nil)
+}
+
 // 新代理消息结构
 type NewProxyMsg struct {
 	Name       string
@@ -124,33 +186,9 @@ func HandleTCPForward(localConn, remoteConn net.Conn) {
 	<-done
 }
 
-// 认证函数
+// 认证函数（保留旧接口用于向后兼容）
 func Authenticate(conn net.Conn, expectedToken string) error {
-	// 接收认证消息
-	header, data, err := RecvMsg(conn)
-	if err != nil {
-		return err
-	}
-
-	if header.Type != MsgTypeAuth {
-		return errors.New("expected auth message")
-	}
-
-	var authMsg AuthMsg
-	if len(data) > 0 {
-		// 解析认证消息
-		if err := binary.Read(bytes.NewReader(data), binary.BigEndian, &authMsg.Token); err != nil {
-			return err
-		}
-	}
-
-	// 验证令牌
-	if authMsg.Token != expectedToken {
-		return errors.New("invalid token")
-	}
-
-	// 发送认证成功响应
-	return SendMsg(conn, MsgTypeAuth, 0, nil)
+	return RecvAuth(conn, expectedToken)
 }
 
 // 发送心跳

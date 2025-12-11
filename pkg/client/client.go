@@ -3,6 +3,7 @@ package client
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"io"
 	"net"
 	"sync"
@@ -50,10 +51,20 @@ func (c *Client) Start() error {
 
 	common.Log("Connected to server at %s", c.config.Client.ServerAddr)
 
-	// 认证
-	err = common.Authenticate(c.conn, c.config.Client.Token)
+	// 发送认证信息
+	err = common.SendAuth(c.conn, c.config.Client.Token)
 	if err != nil {
 		return err
+	}
+
+	// 等待认证响应
+	header, _, err := common.RecvMsg(c.conn)
+	if err != nil {
+		return err
+	}
+
+	if header.Type != common.MsgTypeAuth {
+		return errors.New("authentication failed")
 	}
 
 	common.Log("Authenticated successfully")
